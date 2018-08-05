@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LuaBase.h"
+#include "LuaInterface.h"
 #include <stdexcept>
 
 namespace GarrysMod
@@ -10,8 +10,8 @@ namespace GarrysMod
 		class AutoStack
 		{
 		public:
-			AutoStack( GarrysMod::Lua::ILuaBase *lua ) :
-				lua_base( lua )
+			AutoStack( ILuaBase *lua_base ) :
+				lua( static_cast<ILuaInterface *>( lua_base ) )
 			{
 				if( lua == nullptr )
 					throw std::runtime_error( "ILuaBase can't be NULL!" );
@@ -19,14 +19,14 @@ namespace GarrysMod
 				stack_start = lua->Top( );
 			}
 
-			~AutoStack( )
+			virtual ~AutoStack( )
 			{
 				Reset( );
 			}
 
 			int32_t GetStackDifference( ) const
 			{
-				return lua_base->Top( ) - stack_start;
+				return lua->Top( ) - stack_start;
 			}
 
 			bool Reset( )
@@ -36,13 +36,13 @@ namespace GarrysMod
 					return false;
 
 				if( diff > 0 )
-					lua_base->Pop( diff );
+					lua->Pop( diff );
 
 				return true;
 			}
 
-		private:
-			ILuaBase *lua_base;
+		protected:
+			ILuaInterface *lua;
 			int32_t stack_start;
 		};
 	}
