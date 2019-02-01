@@ -1,34 +1,37 @@
 #!/bin/bash
 
-# Exit if any command fails and if any unset variable is used
-set -eu
+# Exit if any command fails
+set -e
 
 # Checkout with the correct line endings on plain text files, depending on the host OS
 git config --global core.autocrlf true >/dev/null 2>/dev/null
 
-function validate_variable {
+function validate_variable_or_set_default {
 	NAME="$1"
+	DEFAULT="$2"
 
-	value=""
+	VALUE="$DEFAULT"
 	if [ "${!NAME}" ]; then
-		value="${!NAME}"
+		VALUE="${!NAME}"
 	fi
 
-	if [ -z "$value" ]; then
+	if [ -z "$VALUE" ] && [ -z "$DEFAULT" ]; then
 		exit 1
 	fi
+
+	export "$NAME"="$VALUE"
 }
 
 function update_local_git_repository {
-	$DIRECTORY="$1"
-	$REPOSITORY="$2"
-	$BRANCH="${3:-master}"
+	DIRECTORY="$1"
+	REPOSITORY="$2"
+	BRANCH="${3:-master}"
 
-	$UPDATED=0
+	UPDATED=0
 	if [ ! $(git -C "$DIRECTORY" rev-parse --is-inside-work-tree >/dev/null 2>/dev/null) ]; then
 		rm -rf "$DIRECTORY"
-		git clone --quiet --depth 1 --shallow-submodules --recursive "$REREPOSITORYPO" "$DIRECTORY"
-		$UPDATED=1
+		git clone --quiet --depth 1 --shallow-submodules --recursive "$REPOSITORY" "$DIRECTORY"
+		UPDATED=1
 	else
 		pushd "$DIRECTORY"
 
@@ -37,7 +40,7 @@ function update_local_git_repository {
 		CURBRANCH=$(git symbolic-ref --quiet --short HEAD)
 		if [ ! $BRANCH = $CURBRANCH ]; then
 			git checkout --quiet --force "$BRANCH"
-			$UPDATED=1
+			UPDATED=1
 		fi
 
 		LOCAL=$(git rev-parse @)
@@ -45,11 +48,11 @@ function update_local_git_repository {
 		BASE=$(git merge-base @ @{u})
 
 		if [ $LOCAL = $BASE ]; then
-			$UPDATED=1
+			UPDATED=1
 		elif [ ! $LOCAL = $REMOTE ]; then
 			git reset --quiet --hard origin/master
 			git clean --quiet --force -dx
-			$UPDATED=1
+			UPDATED=1
 		fi
 
 		if [ $UPDATED -eq 1 ]; then
@@ -63,7 +66,7 @@ function update_local_git_repository {
 	echo "$UPDATED"
 }
 
-validate_variable "GARRYSMOD_COMMON_REPOSITORY"
-validate_variable "GARRYSMOD_COMMON"
+validate_variable_or_set_default "GARRYSMOD_COMMON_REPOSITORY" "https://github.com/danielga/garrysmod_common.git"
+validate_variable_or_set_default "GARRYSMOD_COMMON" "./garrysmod_common"
 
 update_local_git_repository "$GARRYSMOD_COMMON" "$GARRYSMOD_COMMON_REPOSITORY" "improve-build-scripts"

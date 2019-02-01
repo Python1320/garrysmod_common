@@ -18,7 +18,7 @@ fi
 
 if [ ! -f "$PREMAKE5" ]; then
 	PREMAKE_DIRECTORY="$DEPENDENCIES/$PROJECT_OS/premake-core"
-	PREMAKE_TAR_PATH = "$PREMAKE_DIRECTORY/premake-core.tar.gz"
+	PREMAKE_TAR_PATH="$PREMAKE_DIRECTORY/premake-core.tar.gz"
 	create_directory_forcefully "$PREMAKE_DIRECTORY"
 	curl -s "https://github.com/premake/premake-core/releases/download/v5.0.0-alpha13/premake-5.0.0-alpha13-linux.tar.gz" -o "$PREMAKE_TAR_PATH"
 	tar -xf "$PREMAKE_TAR_PATH" -C "$PREMAKE_DIRECTORY"
