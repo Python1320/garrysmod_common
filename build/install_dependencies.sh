@@ -16,15 +16,11 @@ if [ ! -z "${SOURCE_SDK+x}" ]; then
 	update_local_git_repository "$SOURCE_SDK" "https://github.com/danielga/sourcesdk-minimal.git"
 fi
 
-$BUILD_PREMAKE5=$(update_local_git_repository "$DEPENDENCIES/premake-core" "https://github.com/premake/premake-core.git")
-
-create_directory_forcefully "$DEPENDENCIES/$PROJECT_OS"
-
-if [ $BUILD_PREMAKE5 -eq 1 ] ; then
-	echo "premake-core needs building, bootstrapping"
-	pushd "$DEPENDENCIES/premake-core"
-	make -j "$JOBS" -f Bootstrap.mak "$TARGET_OS"
-	popd
-	create_directory_forcefully "$DEPENDENCIES/$PROJECT_OS/premake-core"
-	cp "$DEPENDENCIES/premake-core/bin/release/$PREMAKE5_EXECUTABLE" "$"
+if [ ! -f "$PREMAKE5" ]; then
+	PREMAKE_DIRECTORY="$DEPENDENCIES/$PROJECT_OS/premake-core"
+	PREMAKE_TAR_PATH = "$PREMAKE_DIRECTORY/premake-core.tar.gz"
+	create_directory_forcefully "$PREMAKE_DIRECTORY"
+	curl -s "https://github.com/premake/premake-core/releases/download/v5.0.0-alpha13/premake-5.0.0-alpha13-linux.tar.gz" -o "$PREMAKE_TAR_PATH"
+	tar -xf "$PREMAKE_TAR_PATH" -C "$PREMAKE_DIRECTORY"
+	rm -f "$PREMAKE_TAR_PATH"
 fi

@@ -5,6 +5,8 @@ Import-Module "$PSScriptRoot/setup.psm1"
 
 Install-Module -Name Invoke-MsBuild -Scope CurrentUser -Force
 
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
 # Checkout with the correct line endings on plain text files, depending on the host OS
 git config --global core.autocrlf true >$null 2>$null
 
@@ -14,16 +16,11 @@ if ($env:SOURCE_SDK) {
 	UpdateLocalGitRepository $env:SOURCE_SDK -Repository "https://github.com/danielga/sourcesdk-minimal.git"
 }
 
-$BUILD_PREMAKE5 = UpdateLocalGitRepository "$env:DEPENDENCIES/premake-core" -Repository "https://github.com/premake/premake-core.git"
-
-CreateDirectoryForcefully "$env:DEPENDENCIES/$env:PROJECT_OS"
-
-if ($BUILD_PREMAKE5) {
-	Write-Output "premake-core needs building, bootstrapping"
-	Push-Location "$env:DEPENDENCIES/premake-core"
-	$env:CL = "/MP"
-	nmake -f Bootstrap.mak "$env:PROJECT_OS"
-	Pop-Location
-	CreateDirectoryForcefully("$env:DEPENDENCIES/$env:PROJECT_OS/premake-core")
-	Copy-Item "$env:DEPENDENCIES/premake-core/bin/release/$env:PREMAKE5_EXECUTABLE" $env:PREMAKE5
+if (!(Get-Item $env:PREMAKE5 -ErrorAction SilentlyContinue) -is [System.IO.FileInfo]) {
+	$PremakeDirectory = "$env:DEPENDENCIES/$env:PROJECT_OS/premake-core"
+	$PremakeZipPath = "$PremakeDirectory/premake-core.zip"
+	CreateDirectoryForcefully $PremakeDirectory
+	(New-Object System.Net.WebClient).DownloadFile("https://github.com/premake/premake-core/releases/download/v5.0.0-alpha13/premake-5.0.0-alpha13-windows.zip", $PremakeZipPath)
+	[System.IO.Compression.ZipFile]::ExtractToDirectory($PremakeZipPath, $PremakeDirectory)
+	Remove-Item $PremakeZipPath -Force
 }
