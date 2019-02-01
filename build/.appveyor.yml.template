@@ -23,7 +23,7 @@ install:
 
     if exist "%GARRYSMOD_COMMON%/premake5.lua" (echo "garrysmod_common directory is good, pulling any latest changes" & git -C "%GARRYSMOD_COMMON%" pull & git -C "%GARRYSMOD_COMMON%" submodule update --init --recursive)
 
-    if not exist "%GARRYSMOD_COMMON%/premake5.lua" (echo "garrysmod_common directory is empty, doing git clone of the remote repo" & git clone --recursive "%GARRYSMOD_COMMON_REPOSITORY%" "%GARRYSMOD_COMMON%")
+    if not exist "%GARRYSMOD_COMMON%/premake5.lua" (echo "garrysmod_common directory is empty, doing git clone of the remote repo" & git clone --depth 1 --shallow-submodules --recursive "%GARRYSMOD_COMMON_REPOSITORY%" "%GARRYSMOD_COMMON%")
 cache:
 - $(APPVEYOR_BUILD_FOLDER)/dependencies/
 - $(APPVEYOR_BUILD_FOLDER)/projects/

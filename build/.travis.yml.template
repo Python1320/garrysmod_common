@@ -43,7 +43,7 @@ install:
   - mkdir -p "$DEPENDENCIES"
   - if [ ! -f "$GARRYSMOD_COMMON/premake5.lua" ]; then
       echo "garrysmod_common directory is empty, doing git clone of the remote repo";
-      git clone --recursive "$GARRYSMOD_COMMON_REPOSITORY" "$GARRYSMOD_COMMON";
+      git clone --depth 1 --shallow-submodules --recursive "$GARRYSMOD_COMMON_REPOSITORY" "$GARRYSMOD_COMMON";
     else
       echo "garrysmod_common directory is good, pulling any latest changes";
       git -C "$GARRYSMOD_COMMON" pull;
